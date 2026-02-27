@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /Users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Users can update their own profile, but cannot tamper with credits or badges through client (that's the function's job)
+      allow update: if request.auth != null && request.auth.uid == userId &&
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalCredits', 'badges', 'rewardPoints', 'totalCleanups']));
+      allow write: if isAdmin();
+    }
+
+    match /Uploads/{uploadId} {
+      allow read: if request.auth != null;
+      // Students can create their own uploads
+      allow create: if request.auth != null 
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.approved == false; 
+      // Only cloud functions or admins should update Uploads (like adding aiScores or approving)
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /PublicReports/{reportId} {
+      allow read: if request.auth != null;
+      // Anyone logged in can create a report, status must be pending, rewardPoints must be 0
+      allow create: if request.auth != null
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.rewardPoints == 0;
+      // Only cloud functions or admins should update PublicReports
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}
