@@ -1,61 +1,71 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Map as MapIcon, Trophy, User, PlusCircle, LayoutDashboard, LogOut, Image as ImageIcon } from 'lucide-react';
+import { Leaf, Map as MapIcon, Trophy, User, PlusCircle, LayoutDashboard, LogOut, Image as ImageIcon, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
     const { currentUser, logout } = useAuth();
     const location = useLocation();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const isActive = (path) => location.pathname === path ? 'active' : '';
+    const closeMenu = () => setIsMenuOpen(false);
 
     return (
         <nav className="navbar">
             <div className="container flex justify-between items-center" style={{ width: '100%' }}>
-                <Link to="/" className="flex items-center gap-2">
+                <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
                     <Leaf color="#10b981" size={32} />
-                    <span style={{ fontSize: '1.5rem', fontWeight: '800', fontFamily: 'var(--font-heading)', background: 'linear-gradient(to right, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        CleanMadurai AI
+                    <span style={{ fontSize: '1.5rem', fontWeight: '800', fontFamily: 'var(--font-heading)', background: 'linear-gradient(to right, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>
+                        CleanMadurai
                     </span>
                 </Link>
 
-                <div className="nav-links">
+                <button
+                    className="mobile-menu-btn"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                    {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                </button>
+
+                <div className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
                     {currentUser ? (
                         <>
                             {currentUser.role === 'student' && (
-                                <Link to="/student-dashboard" className={`nav-link flex items-center gap-1 ${isActive('/student-dashboard')}`}>
-                                    <LayoutDashboard size={18} /> Student Dashboard
+                                <Link to="/student-dashboard" onClick={closeMenu} className={`nav-link flex items-center gap-1 ${isActive('/student-dashboard')}`}>
+                                    <LayoutDashboard size={18} /> Dashboard
                                 </Link>
                             )}
                             {currentUser.role === 'public' && (
-                                <Link to="/public-dashboard" className={`nav-link flex items-center gap-1 ${isActive('/public-dashboard')}`}>
+                                <Link to="/public-dashboard" onClick={closeMenu} className={`nav-link flex items-center gap-1 ${isActive('/public-dashboard')}`}>
                                     <LayoutDashboard size={18} /> Dashboard
                                 </Link>
                             )}
                             {currentUser.role === 'admin' && (
-                                <Link to="/admin" className={`nav-link flex items-center gap-1 ${isActive('/admin')}`}>
+                                <Link to="/admin" onClick={closeMenu} className={`nav-link flex items-center gap-1 ${isActive('/admin')}`}>
                                     Admin
                                 </Link>
                             )}
                         </>
                     ) : (
                         <>
-                            <a href="/#features" className="nav-link">Features</a>
-                            <a href="/#how-it-works" className="nav-link">How it works</a>
+                            <a href="/#features" onClick={closeMenu} className="nav-link whitespace-nowrap">Features</a>
+                            <a href="/#how-it-works" onClick={closeMenu} className="nav-link whitespace-nowrap">How it works</a>
                         </>
                     )}
 
-                    <Link to="/report" className={`nav-link flex items-center gap-1 ${isActive('/report')}`}>
+                    <Link to="/report" onClick={closeMenu} className={`nav-link flex items-center gap-1 whitespace-nowrap ${isActive('/report')}`}>
                         <PlusCircle size={18} /> Report
                     </Link>
 
-                    <Link to="/gallery" className={`nav-link flex items-center gap-1 ${isActive('/gallery')}`}>
+                    <Link to="/gallery" onClick={closeMenu} className={`nav-link flex items-center gap-1 whitespace-nowrap ${isActive('/gallery')}`}>
                         <ImageIcon size={18} /> Gallery
                     </Link>
-                    <Link to="/heatmap" className={`nav-link flex items-center gap-1 ${isActive('/heatmap')}`}>
+                    <Link to="/heatmap" onClick={closeMenu} className={`nav-link flex items-center gap-1 whitespace-nowrap ${isActive('/heatmap')}`}>
                         <MapIcon size={18} /> Heatmap
                     </Link>
-                    <Link to="/leaderboard" className={`nav-link flex items-center gap-1 ${isActive('/leaderboard')}`}>
-                        <Trophy size={18} /> Leaderboard
+                    <Link to="/leaderboard" onClick={closeMenu} className={`nav-link flex items-center gap-1 whitespace-nowrap ${isActive('/leaderboard')}`}>
+                        <Trophy size={18} /> Top Heroes
                     </Link>
 
                     {currentUser ? (
@@ -73,12 +83,12 @@ export default function Navbar() {
                                     </span>
                                 </div>
                             </div>
-                            <button className="btn btn-outline" onClick={logout} style={{ padding: '0.5rem 1rem' }}>
+                            <button className="btn btn-outline" onClick={() => { closeMenu(); logout(); }} style={{ padding: '0.5rem 1rem' }}>
                                 <LogOut size={16} /> Logout
                             </button>
                         </div>
                     ) : (
-                        <Link to="/login" className="btn btn-primary ml-4">
+                        <Link to="/login" onClick={closeMenu} className="btn btn-primary ml-0 lg:ml-4 whitespace-nowrap">
                             <User size={18} /> Sign In
                         </Link>
                     )}
