@@ -12,7 +12,7 @@ const containerStyle = {
     border: '1px solid var(--border-glass)'
 };
 
-const center = {
+const defaultCenter = {
     lat: 9.9252,
     lng: 78.1198
 };
@@ -46,6 +46,7 @@ export default function Heatmap() {
     const [hotspots, setHotspots] = useState([]);
     const [selectedHotspot, setSelectedHotspot] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [mapCenter, setMapCenter] = useState(defaultCenter);
 
     const onLoad = useCallback(function callback(map) {
         setMap(map);
@@ -53,6 +54,24 @@ export default function Heatmap() {
 
     const onUnmount = useCallback(function callback(map) {
         setMap(null);
+    }, []);
+
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setMapCenter({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.warn("Geolocation Error in Heatmap: ", error);
+                    // Fallback to default empty state (Madurai center already hooked)
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
     }, []);
 
     useEffect(() => {
@@ -199,7 +218,7 @@ export default function Heatmap() {
                 {isLoaded ? (
                     <GoogleMap
                         mapContainerStyle={containerStyle}
-                        center={center}
+                        center={mapCenter}
                         zoom={13}
                         onLoad={onLoad}
                         onUnmount={onUnmount}

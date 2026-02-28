@@ -111,7 +111,8 @@ export default function StudentDashboard() {
                 coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
             }
         } catch (err) {
-            toast.error("Location not found, using default coordinates.");
+            // Silently use default coordinates (Madurai Center) on error, timeout, or denial
+            console.warn("Location error/timeout, using default coordinates.", err.message);
         }
 
         try {
@@ -339,16 +340,28 @@ export default function StudentDashboard() {
                                                 </div>
 
                                                 {upload.aiScores && (
-                                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                                        <div className="text-center bg-slate-800 rounded p-2" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
-                                                            <span className="block text-xl font-bold text-primary-light">+{upload.aiScores.improvementScore}%</span>
-                                                            <span className="text-[10px] text-muted uppercase">Improvement</span>
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                                            <div className="text-center bg-slate-800 rounded p-2" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
+                                                                <span className="block text-xl font-bold text-primary-light">+{upload.aiScores.improvementScore}%</span>
+                                                                <span className="text-[10px] text-muted uppercase">Improvement</span>
+                                                            </div>
+                                                            <div className="text-center bg-slate-800 rounded p-2" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
+                                                                <span className="block text-xl font-bold text-amber-500">{upload.aiScores.creditsEarned || 0}</span>
+                                                                <span className="text-[10px] text-muted uppercase">Credits</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="text-center bg-slate-800 rounded p-2" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
-                                                            <span className="block text-xl font-bold text-amber-500">{upload.aiScores.creditsEarned || 0}</span>
-                                                            <span className="text-[10px] text-muted uppercase">Credits</span>
-                                                        </div>
-                                                    </div>
+
+                                                        {upload.aiScores.garbageType && (
+                                                            <div className="mt-2 text-center bg-slate-800 rounded p-1.5" style={{ background: 'rgba(56, 189, 248, 0.1)' }}>
+                                                                <span className="text-[11px] text-sky-400 font-medium">
+                                                                    Type: {Array.isArray(upload.aiScores.garbageType)
+                                                                        ? upload.aiScores.garbageType.join(', ')
+                                                                        : upload.aiScores.garbageType}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         ))
@@ -459,6 +472,6 @@ export default function StudentDashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }

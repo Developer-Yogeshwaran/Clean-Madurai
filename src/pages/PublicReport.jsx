@@ -41,7 +41,8 @@ export default function PublicReport() {
                 coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
             }
         } catch (err) {
-            toast('Location access denied or timeout. Using default anonymous coordinates.', { icon: '⚠️' });
+            // Silently use default coordinates on error, timeout, or denial
+            console.warn("Location error/timeout, using default coordinates.", err.message);
         }
 
         try {

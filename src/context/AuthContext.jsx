@@ -85,6 +85,7 @@ export const AuthProvider = ({ children }) => {
             await setDoc(doc(db, 'Users', user.uid), userData);
             setCurrentUser({ ...user, ...userData });
         } catch (error) {
+            toast.error(error.message || 'Error signing up');
             throw error;
         }
     };
@@ -97,6 +98,7 @@ export const AuthProvider = ({ children }) => {
             }
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
+            toast.error(`Login Failed: ${error.code || error.message}`);
             throw error;
         }
     };

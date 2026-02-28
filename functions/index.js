@@ -1,4 +1,8 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onObjectFinalized } = require("firebase-functions/v2/storage");
+const functions = require("firebase-functions");
+const vision = require("@google-cloud/vision");
+const client = new vision.ImageAnnotatorClient();
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getStorage } = require("firebase-admin/storage");
 const { initializeApp } = require("firebase-admin/app");
@@ -6,7 +10,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 const { randomUUID } = require("crypto");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const logger = require("firebase-functions/logger");
 
 initializeApp();
@@ -344,5 +347,28 @@ exports.resolvePublicReport = onDocumentUpdated("PublicReports/{reportId}", asyn
         } catch (error) {
             logger.error(`Error processing reward points for resolved report:`, error);
         }
+    }
+});
+
+exports.analyzeImage = onObjectFinalized({ bucket: "clean-madurai-698f3.firebasestorage.app" }, async (event) => {
+    const fileBucket = event.data.bucket;
+    const filePath = event.data.name;
+
+    try {
+        const [result] = await client.labelDetection(
+            `gs://${fileBucket}/${filePath}`
+        );
+
+        const labels = result.labelAnnotations.map((label) => label.description);
+
+        await db.collection("reports").add({
+            image: filePath,
+            labels: labels,
+            createdAt: FieldValue.serverTimestamp()
+        });
+
+        logger.info("Image analyzed:", labels);
+    } catch (error) {
+        logger.error("Error analyzing image:", error);
     }
 });
